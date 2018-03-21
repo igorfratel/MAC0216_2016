@@ -1,0 +1,30 @@
+         XOR   $0,$0,$0        Faz $0 <-- 0
+         SETW  rX,1
+readint  INT   #80             Lê um caractere
+         CMPI  $1,rA,48        O caractere vem antes do 0?
+         JN    $1,readtxt      Aqui tem que encerrar a subrotina
+         CMPI  $1,rA,57        O caractere vem depois do 9?
+         JP    $1,readtxt      Aqui tem que encerrar a subrotina
+         SUBUI rA,rA,48        Transforma o caractere em inteiro
+         MULUI $0,$0,10        Abre espaço para adicionar o algarismo
+         ADDU  $0,$0,rA        Adiciona o algarismo
+         JMP   readint         Aqui tem que voltar para ler o prox algarismo
+
+readtxt  XOR   $4,$4,$4        Zerar o $4 para usar na linha "ADDUI $3,$4,0" (Eu sei que não precisa fazer isso em toda iteração)
+         ORI   $5,$3,0         Copia o conteúdo do $3 para o $5 (Usaremos isso para marcar o início da string)
+         INT   #80             Lê um caractere
+         JN    rA,endtxt       Se o conteúdo de rA for negativo, chegamos no fim da string
+         STB   rA,$2,$3         Guardamos o conteúdo de rA na posição de memória (u($2)+u($3)) mod 2^64 
+         ADDUI $3,$4,1         Incrementamos o registrador $3, para indicar a posição do próximo caractere a ser lido
+         JMP   readtxt         Volta para ler o próximo caractere
+endtxt   SETW  rA,0            
+         STB   rA,$2,$3        Adiciona 0 no final da string
+
+printtxt SETW  rX,2            Prepara para printar
+         LDB   rY,$2,$5        rY recebe um caractere da string
+         JZ    rY,end          Se rY=0 chegamos no final da string
+         ADDUI $5,$4,1         Incrementamos o $5       
+         JMP   printtxt
+         INT   #80
+
+end      INT   0
